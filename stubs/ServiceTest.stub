@@ -1,0 +1,122 @@
+<?php
+
+namespace {{ namespace }};
+
+use {{ namespacedModel }};
+use {{ namespacedRepository }};
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\WithFaker;
+use Tests\TestCase;
+
+class {{ class }} extends TestCase
+{
+    use RefreshDatabase, WithFaker;
+
+    public function test_get()
+    {
+        $expected = 3;
+        {{ model }}::factory($expected)->create();
+        $actual = (new {{ service }})->get();
+
+        $this->assertEquals($expected, $actual->count());
+    }
+
+    public function test_find()
+    {
+        ${{ modelVariable }} = {{ model }}::factory()->create();
+        $actual = (new {{ service }})->find(${{ modelVariable }}->id);
+
+        $this->assertEquals(${{ modelVariable }}->id, $actual->id);
+    }
+
+    public function test_create()
+    {
+        // TODO: update attribute for test create function
+        // ** we assume that in the table have name column
+        $attributes = [
+            'name' => $this->faker->name,
+        ];
+
+        $attributeSet = (new {{ service }})->create($attributes);
+
+        $this->assertInstanceOf({{ model }}::class, $attributeSet);
+        $this->assertDatabaseHas('{{ table }}', ['name' => $attributes['name']]);
+    }
+
+    public function test_update()
+    {
+        // TODO: update attribute for test create function
+        // ** we assume that in the table have name column
+        ${{ modelVariable }} = {{ model }}::factory()->create([
+            'name' => $this->faker->name,
+        ]);
+
+        $existed{{ model }} = clone ${{ modelVariable }};
+
+        $attributes = [
+            'name' => $this->faker->name . ' Updated!', // Just make sure in case faker return duplicate
+        ];
+
+        $actual = (new {{ service }})->update(${{ modelVariable }}, $attributes);
+
+        $this->assertInstanceOf({{ model }}::class, ${{ modelVariable }});
+        $this->assertEquals(${{ modelVariable }}->id, $actual->id);
+
+        $this->assertDatabaseMissing('{{ table }}', [
+            'name' => $existed{{ model }}->name,
+        ]);
+
+        $this->assertDatabaseHas('{{ table }}', [
+            'name' => $attributes['name'],
+        ]);
+    }
+
+    public function test_update_or_create()
+    {
+        // TODO: update attribute for test create function
+        // ** we assume that in the table have name column
+        ${{ modelVariable }} = {{ model }}::factory()->create();
+
+        $name = $this->faker->name;
+
+        $actual = (new {{ service }})->updateOrCreate(
+            ['id' => ${{ modelVariable }}->id],
+            ['name' => $name]
+        );
+
+        $this->assertInstanceOf({{ model }}::class, ${{ modelVariable }});
+        $this->assertNotEquals(${{ modelVariable }}->name, $actual->name);
+        $this->assertEquals($name, $actual->name);
+    }
+
+    public function test_delete()
+    {
+        ${{ modelVariable }} = {{ model }}::factory()->create();
+
+        (new {{ service }})->delete(${{ modelVariable }}->id);
+
+        $this->assertDeleted('{{ table }}', [
+            'id' => ${{ modelVariable }}->id
+        ]);
+
+        ${{ modelVariable }} = (new {{ service }})->get();
+        $this->assertEquals(0, count(${{ modelVariable }}));
+    }
+
+    public function test_paginate()
+    {
+        $expectedTotalProductFound = 10;
+        $expectedPerPage = 5;
+
+        {{ model }}::factory($expectedTotalProductFound)->create();
+
+        $conditions = [
+            'order_by' => 'id',
+            'order_direction' => 'desc',
+            'per_page' => 10,
+        ];
+
+        ${{ modelVariable }} = (new {{ service }})->paginate($conditions);
+        $this->assertEquals($expectedTotalProductFound, ${{ modelVariable }}->total());
+    }
+}

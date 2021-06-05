@@ -1,0 +1,47 @@
+<?php
+
+namespace {{ namespace }};
+
+use {{ namespacedModel }};
+use Illuminate\Support\Collection;
+
+class {{ class }}
+{
+    public function model(): {{ model }}
+    {
+        return new {{ model }}();
+    }
+
+    public function get(): Collection
+    {
+        return {{ model }}::all();
+    }
+
+    public function find(int $id): {{ model }}
+    {
+        return {{ model }}::findOrFail($id);
+    }
+
+    public function create(array $attributes): {{ model }}
+    {
+        return {{ model }}::create($attributes);
+    }
+
+    public function update({{ model }} ${{ modelVariable }}, array $attributes): {{ model }}
+    {
+        ${{ modelVariable }}->update($attributes);
+        ${{ modelVariable }}->fresh();
+
+        return ${{ modelVariable }};
+    }
+
+    public function updateOrCreate(array $conditions, array $params): {{ model }}
+    {
+        return {{ model }}::updateOrCreate($conditions, $params);
+    }
+
+    public function destroy(int $id)
+    {
+        return {{ model }}::destroy($id);
+    }
+}

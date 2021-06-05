@@ -1,0 +1,133 @@
+<?php
+
+namespace {{ namespace }};
+
+use {{ namespacedModel }};
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\WithFaker;
+use Illuminate\Http\Response;
+use Tests\TestCase;
+
+class {{ class }} extends TestCase
+{
+    use RefreshDatabase, WithFaker;
+    
+    public function setup(): void
+    {
+        parent::setup();
+        // TODO:: Please update auth by your self
+    }
+
+    public function test_index_successfully()
+    {
+        {{ model }}::factory(10)->create();
+
+        $response = $this->json(
+            'GET',
+            route('api.{{ route }}.index')
+        );
+
+        $response->assertStatus(Response::HTTP_OK)
+            ->assertJsonStructure(['data']);
+    }
+
+    public function test_show_successfully()
+    {
+        ${{ modelVariable }} = {{ model }}::factory()->create();
+
+        $response = $this->json(
+            'GET',
+            route('api.{{ route }}.show', ${{ modelVariable }}->id)
+        );
+
+        $response->assertStatus(Response::HTTP_OK)
+            ->assertJsonStructure(['data']);
+    }
+
+    public function test_show_not_found()
+    {
+        {{ model }}::factory()->create();
+
+        $response = $this->json(
+            'GET',
+            route('api.{{ route }}.show', 999999)
+        );
+
+        $response->assertStatus(Response::HTTP_NOT_FOUND);
+    }
+
+    public function test_store_successfully()
+    {
+        // TODO:: Update faker as you see fit
+        $params = [
+            {{ inputForTest }}
+        ];
+
+        $response = $this->json(
+            'POST',
+            route('api.{{ route }}.store'),
+            $params
+        );
+
+        $response->assertStatus(Response::HTTP_OK)
+            ->assertJsonStructure([
+                'data' => [
+                    // TODO:: Update response fields
+                    {{ fillable }}
+                ],
+            ]);
+    }
+
+    public function test_update_successfully()
+    {
+        ${{ modelVariable }} = {{ model }}::factory()->create();
+
+        // TODO:: Update faker as you see fit
+        $params = [
+            {{ inputForTest }}
+        ];
+
+        $response = $this->json(
+            'PUT',
+            route('api.{{ route }}.update', ['id' => ${{ modelVariable }}->id]),
+            $params
+        );
+
+        $response->assertStatus(Response::HTTP_OK)
+            ->assertJsonStructure([
+                'data' => [
+                    // TODO:: Update response fields
+                    {{ fillable }}
+                ],
+            ]);
+    }
+
+    public function test_destroy_successfully()
+    {
+        ${{ modelVariable }} = {{ model }}::factory()->create();
+
+        $response = $this->json(
+            'DELETE',
+            route('api.{{ route }}.update', ['id' => ${{ modelVariable }}->id])
+        );
+
+        $response->assertStatus(Response::HTTP_OK);
+    }
+
+    public function test_destroy_fail_invalid_id()
+    {
+        {{ model }}::factory()->create();
+
+        $response = $this->json(
+            'DELETE',
+            route('api.{{ route }}.destroy', ['id' => 999999])
+        );
+
+        $response->assertStatus(Response::HTTP_NOT_FOUND);
+    }
+
+    public function tearDown(): void
+    {
+        parent::tearDown();
+    }
+}

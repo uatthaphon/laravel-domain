@@ -1,0 +1,102 @@
+<?php
+
+namespace {{ namespace }};
+
+use {{ namespacedService }};
+use App\Http\Controllers\Controller;
+use App\Http\Requests\Api\{{ class }}\IndexRequest;
+use App\Http\Requests\Api\{{ class }}\StoreRequest;
+use App\Http\Requests\Api\{{ class }}\UpdateRequest;
+use App\Http\Resources\Api\{{ model }}\{{ resource }};
+use App\Http\Resources\Api\{{ model }}\{{ resourceCollection }};
+use Illuminate\Http\Response;
+
+class {{ class }} extends Controller
+{
+    const PER_PAGE = 30;
+
+    protected {{ service }} ${{ serviceVariable }};
+
+    public function __construct()
+    {
+        $this->{{ serviceVariable }} = new {{ service }};
+    }
+
+    public function index(IndexRequest $request)
+    {
+        $perPage = $request->get('per_page') ?? self::PER_PAGE;
+
+        if (!is_null($perPage) && $perPage == 'all') {
+            ${{ model }}s = $this->{{ serviceVariable }}->get();
+        } else {
+            $conditions = [
+                'per_page' => $perPage,
+                'with' => null, // can be string or array
+                'keyword' => null,
+                'started_at' => null,
+                'ended_at' => null,
+                'order_by' => 'id',
+                'order_direction' => 'desc',
+            ];
+            ${{ model }}s = $this->{{ serviceVariable }}->paginate($conditions);
+        }
+
+        return new {{ resourceCollection }}(${{ model }}s);
+    }
+
+    public function show($id)
+    {
+        ${{ model }} = $this->{{ serviceVariable }}->find($id);
+
+        return (new {{ resource }}(${{ model }}))
+            ->response()
+            ->setStatusCode(Response::HTTP_OK);
+    }
+
+    public function store(StoreRequest $request)
+    {
+        $params = $request->only([
+            {{ fillable }}
+        ]);
+
+        ${{ model }} = \DB::Transaction(function () use ($params) {
+            ${{ model }} = $this->{{ serviceVariable }}->create([
+                {{ createInput }}
+            ]);
+
+            return ${{ model }};
+        });
+
+        return (new {{ resource }}(${{ model }}))
+            ->response()
+            ->setStatusCode(Response::HTTP_OK);
+    }
+
+    public function update(UpdateRequest $request, $id)
+    {
+        $params = $request->only([
+            {{ fillable }}
+        ]);
+
+        ${{ model }} = \DB::Transaction(function () use ($params) {
+            ${{ model }} = $this->{{ serviceVariable }}
+                ->update(
+                    $id, 
+                    [
+                        {{ UpdateInput }}
+                    ]
+                );
+
+            return ${{ model }};
+        });
+
+        return (new {{ resource }}(${{ model }}))
+            ->response()
+            ->setStatusCode(Response::HTTP_OK);
+    }
+
+    public function destroy($id)
+    {
+        return $this->{{ serviceVariable }}->delete($id);
+    }
+}

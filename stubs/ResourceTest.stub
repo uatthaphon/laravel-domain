@@ -1,0 +1,28 @@
+<?php
+
+namespace {{ namespace }};
+
+use {{ namespacedModel }};
+use {{ namespacedResource }};
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\WithFaker;
+use Illuminate\Http\Request;
+use Tests\TestCase;
+
+class {{ class }} extends TestCase
+{
+    use RefreshDatabase, WithFaker;
+
+    public function test_resource_must_working_properly()
+    {
+        ${{ modelVariable }} = {{ model }}::factory()->create();
+
+        $expected = [
+            {{ resourceTestInput }}
+        ];
+
+        $actual = (new {{ resource }}(${{ modelVariable }}))->toArray(new Request());
+
+        $this->assertEquals($expected, $actual);
+    }
+}

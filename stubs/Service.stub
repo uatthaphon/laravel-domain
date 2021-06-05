@@ -1,0 +1,85 @@
+<?php
+
+namespace {{ namespace }};
+
+use {{ namespacedModel }};
+use {{ namespacedRepository }};
+use Illuminate\Support\Arr;
+use Illuminate\Support\Carbon;
+use Illuminate\Database\Eloquent\Collection;
+
+class {{ class }}
+{
+    protected $searchFields = [];
+
+    protected {{ repository }} ${{ repositoryVariable }};
+
+    public function __construct()
+    {
+        $this->{{ repositoryVariable }} = new {{ repository }};
+    }
+
+    public function get(): Collection
+    {
+        return $this->{{ repositoryVariable }}->get();
+    }
+
+    public function find(int $id): {{ model }}
+    {
+        return $this->{{ repositoryVariable }}->find($id);
+    }
+
+    public function create(array $params): {{ model }}
+    {
+        return $this->{{ repositoryVariable }}->create($params);
+    }
+
+    public function update({{ model }} ${{ modelVariable }}, array $params): {{ model }}
+    {
+        return $this->{{ repositoryVariable }}->update(${{ modelVariable }}, $params);
+    }
+
+    public function updateOrCreate(array $conditions, array $params): {{ model }}
+    {
+        return $this->{{ repositoryVariable }}->updateOrCreate($conditions, $params);
+    }
+
+    public function delete(int $id)
+    {
+        return $this->{{ repositoryVariable }}->destroy($id);
+    }
+
+    public function paginate(array $conditions) 
+    {
+        $query = $this->{{ repositoryVariable }}->model()->newQuery();
+        
+        if (Arr::exists($conditions, 'with') && !is_null($conditions['with'])) {
+            $query->with($conditions['with']);
+        }
+
+        if (Arr::exists($conditions, 'keyword') && !is_null($conditions['keyword'])) {
+            $searchFields = $this->searchFields;
+            $query->where(function ($query) use ($searchFields, $conditions) {
+                foreach ($searchFields as $searchableField) {
+                    $query->orWhere($searchableField, 'like', '%' . $conditions['keyword'] . '%');
+                }
+            });
+        }
+
+        if (Arr::exists($conditions, 'started_at')
+            && Arr::exists($conditions, 'ended_at')
+            && !is_null($conditions['started_at'])
+            && !is_null($conditions['ended_at'])
+        ) {
+            $query
+                ->where('started_at', '<=', $conditions['ended_at'])
+                ->whereRaw('IFNULL(`ended_at`, ?) >= ?', [Carbon::now(), $conditions['started_at']]);
+        }
+
+        if (Arr::exists($conditions, 'order_by') && !is_null($conditions['order_by'])) {
+            $query->orderBy($conditions['order_by'], $conditions['order_direction'] ?? 'desc');
+        }
+
+        return $query->paginate($conditions['per_page'] ?? 10);
+    }
+}
